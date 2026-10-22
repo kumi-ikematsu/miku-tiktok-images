@@ -117,14 +117,15 @@ body{width:1080px;height:1440px;overflow:hidden;font-family:'Noto Sans CJK JP',s
 <div class="sign">未來（みく）の霊視鑑定</div></body></html>`;}
 // --- 写真背景（tools/bg/*.jpg があれば使う。なければ従来の描画背景） ---
 const BGDIR=path.join(__dirname,'bg');const PHOTO=fs.existsSync(BGDIR);
-const LIGHT=['light-stairs','light-crystal','light-book','light-lotus'],DARK=['dark-moon','dark-zodiac'];
+const BGF=PHOTO?fs.readdirSync(BGDIR).filter(f=>f.endsWith('.jpg')).sort().map(f=>f.slice(0,-4)):[];
+const LIGHT=BGF.filter(f=>f.startsWith('light-')),DARK=BGF.filter(f=>f.startsWith('dark-'));
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
-const PH={light:shuf(LIGHT),dark0:Math.floor(R()*2),pos0:Math.floor(R()*3),flip0:R()<.5};
+const PH={dark:shuf(DARK),light:shuf(LIGHT),dark0:Math.floor(R()*2),pos0:Math.floor(R()*3),flip0:R()<.5};
 if(PHOTO){D2.day=pick(DAY.filter(d=>['朝焼け','桜朝','レモン'].includes(d.n)));}
 const bgCache={};const bgData=n=>bgCache[n]||(bgCache[n]='data:image/jpeg;base64,'+fs.readFileSync(path.join(BGDIR,n+'.jpg')).toString('base64'));
 function photoFor(s,i,n){const POS=['28%','50%','72%'];let name,j;
- if(s.bg==='night'){j=i;name=DARK[(PH.dark0+i)%2];}
- else if(s.bg==='day'){j=i;name=PH.light[i%4];}
+ if(s.bg==='night'){j=i;name=PH.dark[(PH.dark0+i)%PH.dark.length];}
+ else if(s.bg==='day'){j=i;name=PH.light[i%PH.light.length];}
  else{j=i;name=s.kind==='cta'?PH.light[1]:PH.light[0];}
  const flip=((j>>1)%2===1)!==PH.flip0;
  return `<div style="position:absolute;inset:0;background:url(${bgData(name)}) ${POS[(PH.pos0+j)%3]} center/cover no-repeat;${flip?'transform:scaleX(-1);':''}"></div>`;}
@@ -158,6 +159,6 @@ body{width:1080px;height:1440px;overflow:hidden;font-family:'Noto Serif CJK JP',
 <div class="wrap"><div class="spark">${L.spark}</div><div class="t">${lines}</div><div class="line"></div></div>
 <div class="sign">未來（みく）の霊視鑑定</div></body></html>`;}
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1080,height:1440}});
- console.log(`look: 夜空=${L.night.n} 白系=${L.silk.n} 月=${L.moon} 枠=${L.frame} 昼=${D2.day.n} 写真=${PHOTO?PH.light.join(','):'なし'}`);
+ console.log(`look: 夜空=${L.night.n} 白系=${L.silk.n} 月=${L.moon} 枠=${L.frame} 昼=${D2.day.n} 写真=${PHOTO?`明${LIGHT.length}枚/夜${DARK.length}枚 `+PH.light.slice(0,2).join(','):'なし'}`);
  for(let i=0;i<post.slides.length;i++){await p.setContent(PHOTO?photoHtml(post.slides[i],i,post.slides.length):html(post.slides[i]),{waitUntil:'load'});const o=path.join(outDir,`${String(i+1).padStart(2,'0')}.png`);await p.screenshot({path:o});console.log(o);}
  await b.close();})();
