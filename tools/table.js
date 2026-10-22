@@ -10,11 +10,13 @@ const BG=path.join(__dirname,'bg'),FACE=path.join(__dirname,'face');
 const files=fs.existsSync(BG)?fs.readdirSync(BG).filter(f=>f.endsWith('.jpg')).sort():[];
 const dark=files.filter(f=>f.startsWith('dark-')),light=files.filter(f=>f.startsWith('light-'));
 const uri=(dir,f)=>{const ext=path.extname(f).slice(1).toLowerCase();return `data:image/${ext==='jpg'?'jpeg':ext};base64,`+fs.readFileSync(path.join(dir,f)).toString('base64');};
-const faceFile=fs.existsSync(FACE)?fs.readdirSync(FACE).filter(f=>/\.(png|jpe?g|webp)$/i.test(f)).sort()[0]:null;
+const faceFiles=fs.existsSync(FACE)?fs.readdirSync(FACE).filter(f=>/\.(png|jpe?g|webp)$/i.test(f)).sort():[];
 const THEMES=[
  {n:'紫',a:'#2a0f4a',b:'#4b1f7a',c:'#7a3fb0',pill:'linear-gradient(90deg,#3b1466,#6a2fa0,#3b1466)',row:'#fbf7ff',rowR:'#f3ecfb'},
  {n:'藍',a:'#0f1440',b:'#26307a',c:'#4f5fc0',pill:'linear-gradient(90deg,#17205c,#3a4aa8,#17205c)',row:'#f8f9ff',rowR:'#eceffb'},
  {n:'葡萄',a:'#33102e',b:'#5e1f55',c:'#9a4590',pill:'linear-gradient(90deg,#4a1442,#86357c,#4a1442)',row:'#fff7fb',rowR:'#f8eaf3'}];
+const dayNo=seedArg&&/^\d{4}-\d{2}-\d{2}/.test(seedArg)?Math.floor(Date.parse(seedArg.slice(0,10))/864e5):null;
+const faceFile=faceFiles.length?(dayNo!==null?faceFiles[Math.floor(dayNo/2)%faceFiles.length]:pick(faceFiles)):null; // 一覧表回(2日おき)ごとに順番に入れ替わる
 const T=pick(THEMES),bgDark=dark.length?pick(dark):null,bgLight=light.length?pick(light):null,flip=R()<.5;
 const BADGE=['#d23a6e','#7b45c4','#2f63c0','#2f8a4a','#cf7f12','#c23a8a','#3b8fa6','#8d5a2b'];
 const bgDiv=(f,dir,extra='')=>f?`<div style="position:absolute;inset:0;background:url(${uri(BG,f)}) center/cover no-repeat;${dir?'transform:scaleX(-1);':''}${extra}"></div>`:'';
