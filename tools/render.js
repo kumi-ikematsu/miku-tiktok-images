@@ -115,6 +115,34 @@ body{width:1080px;height:1440px;overflow:hidden;font-family:'Noto Sans CJK JP',s
 .sign{position:absolute;bottom:70px;width:100%;text-align:center;color:${P.ink};opacity:.75;font-size:30px;font-weight:500;letter-spacing:.25em}
 </style></head><body><div class="bg"></div><div class="wrap"><div class="card">${tag}<div style="width:100%;display:flex;flex-direction:column;align-items:${k==='list'?'flex-start':'center'}">${body}</div><div class="dots"><i></i><i></i><i></i></div></div></div>
 <div class="sign">未來（みく）の霊視鑑定</div></body></html>`;}
+// --- 写真背景（tools/bg/*.jpg があれば使う。なければ従来の描画背景） ---
+const BGDIR=path.join(__dirname,'bg');const PHOTO=fs.existsSync(BGDIR);
+const LIGHT=['light-stairs','light-crystal','light-book','light-lotus'],DARK=['dark-moon','dark-zodiac'];
+const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const PH={light:shuf(LIGHT),dark0:Math.floor(R()*2),pos0:Math.floor(R()*3),flip0:R()<.5};
+if(PHOTO){D2.day=pick(DAY.filter(d=>['朝焼け','桜朝','レモン'].includes(d.n)));}
+const bgCache={};const bgData=n=>bgCache[n]||(bgCache[n]='data:image/jpeg;base64,'+fs.readFileSync(path.join(BGDIR,n+'.jpg')).toString('base64'));
+function photoFor(s,i,n){const POS=['28%','50%','72%'];let name,j;
+ if(s.bg==='night'){j=i;name=DARK[(PH.dark0+i)%2];}
+ else if(s.bg==='day'){j=i;name=PH.light[i%4];}
+ else{j=i;name=s.kind==='cta'?PH.light[1]:PH.light[0];}
+ const flip=((j>>1)%2===1)!==PH.flip0;
+ return `<div style="position:absolute;inset:0;background:url(${bgData(name)}) ${POS[(PH.pos0+j)%3]} center/cover no-repeat;${flip?'transform:scaleX(-1);':''}"></div>`;}
+function photoHtml(s,i,n){
+ if(s.bg==='day'){return dayHtml(s).replace(/\.bg\{[^}]*\}/,'.bg{position:absolute;inset:0}').replace('<div class="bg"></div>',`<div class="bg">${photoFor(s,i,n)}</div><div style="position:absolute;inset:0;background:rgba(255,250,244,.18)"></div>`).replace(/\.sign\{[^}]*\}/,`.sign{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:10px 34px;border-radius:999px;background:rgba(255,251,244,.75);color:${D2.day.ink};font-size:30px;font-weight:500;letter-spacing:.25em}`);}
+ const dark=s.bg==='night';const ink=dark?'#fdf8ec':'#4f3a28';const acc=dark?'#f0d38f':'#b0823a';
+ const lines=esc(s.text).split('\n').join('<br>');const size=s.kind==='cover'?92:s.kind==='cta'?58:50;const weight=s.kind==='cover'?700:500;
+ return `<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1440px;overflow:hidden;font-family:'Noto Serif CJK JP',serif;position:relative}
+.veil{position:absolute;inset:0;background:${dark?'radial-gradient(ellipse 75% 50% at 50% 47%, rgba(14,10,38,.68), rgba(14,10,38,.42) 60%, rgba(14,10,38,.12) 100%)':'radial-gradient(ellipse 75% 50% at 50% 47%, rgba(255,251,244,.88), rgba(255,251,244,.6) 60%, rgba(255,251,244,.15) 100%)'}}
+.wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 110px;text-align:center}
+.spark{color:${acc};font-size:46px;margin-bottom:46px;letter-spacing:30px;text-shadow:${dark?'0 0 12px rgba(0,0,0,.5)':'0 0 10px #fff'}}
+.t{color:${ink};font-size:${size}px;font-weight:${weight};line-height:${s.kind==='cover'?1.55:1.95};letter-spacing:.06em;text-shadow:${dark?'0 2px 16px rgba(0,0,0,.85),0 0 4px rgba(0,0,0,.6)':'0 0 14px #fffaf2,0 0 4px #fffaf2'}}
+.line{width:220px;height:2px;margin-top:56px;background:linear-gradient(90deg,transparent,${acc},transparent)}
+.sign{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:10px 34px;border-radius:999px;background:${dark?'rgba(14,10,38,.5)':'rgba(255,251,244,.7)'};color:${dark?'#f6e6bf':'#7a5a2e'};font-size:30px;letter-spacing:.3em}
+</style></head><body>${photoFor(s,i,n)}<div class="veil"></div>${frame(acc)}
+<div class="wrap"><div class="spark">${L.spark}</div><div class="t">${lines}</div><div class="line"></div></div>
+<div class="sign">未來（みく）の霊視鑑定</div></body></html>`;}
 function html(s){if(s.bg==='day')return dayHtml(s);const dark=s.bg==='night';const ink=dark?'#fbf6ea':L.silk.ink;const acc=dark?L.night.acc:L.silk.acc;
  const lines=esc(s.text).split('\n').join('<br>');const size=s.kind==='cover'?92:s.kind==='cta'?58:50;const weight=s.kind==='cover'?700:500;
  return `<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box}
@@ -130,6 +158,6 @@ body{width:1080px;height:1440px;overflow:hidden;font-family:'Noto Serif CJK JP',
 <div class="wrap"><div class="spark">${L.spark}</div><div class="t">${lines}</div><div class="line"></div></div>
 <div class="sign">未來（みく）の霊視鑑定</div></body></html>`;}
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1080,height:1440}});
- console.log(`look: 夜空=${L.night.n} 白系=${L.silk.n} 月=${L.moon} 枠=${L.frame} 昼=${D2.day.n}`);
- for(let i=0;i<post.slides.length;i++){await p.setContent(html(post.slides[i]),{waitUntil:'load'});const o=path.join(outDir,`${String(i+1).padStart(2,'0')}.png`);await p.screenshot({path:o});console.log(o);}
+ console.log(`look: 夜空=${L.night.n} 白系=${L.silk.n} 月=${L.moon} 枠=${L.frame} 昼=${D2.day.n} 写真=${PHOTO?PH.light.join(','):'なし'}`);
+ for(let i=0;i<post.slides.length;i++){await p.setContent(PHOTO?photoHtml(post.slides[i],i,post.slides.length):html(post.slides[i]),{waitUntil:'load'});const o=path.join(outDir,`${String(i+1).padStart(2,'0')}.png`);await p.screenshot({path:o});console.log(o);}
  await b.close();})();
