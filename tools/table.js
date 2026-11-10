@@ -19,6 +19,8 @@ const dayNo=seedArg&&/^\d{4}-\d{2}-\d{2}/.test(seedArg)?Math.floor(Date.parse(se
 const faceFile=faceFiles.length?(dayNo!==null?faceFiles[Math.floor(dayNo/2)%faceFiles.length]:pick(faceFiles)):null; // 一覧表回(2日おき)ごとに順番に入れ替わる
 const T=pick(THEMES),bgDark=dark.length?pick(dark):null,bgLight=light.length?pick(light):null,flip=R()<.5;
 const LM=D.layout==='grid';
+// TikTokの上部（検索バー）・下部（名前・投稿文）に隠れないよう、中身を縮めて中央寄りに置く（上下に余白）
+const SAFE_SCALE=D.safeScale||0.86,SAFE_TOP=D.safeTop??120;
 const BADGE=['#d23a6e','#7b45c4','#2f63c0','#2f8a4a','#cf7f12','#c23a8a','#3b8fa6','#8d5a2b'];
 const bgDiv=(f,dir,extra='')=>f?`<div style="position:absolute;inset:0;background:url(${uri(BG,f)}) center/cover no-repeat;${dir?'transform:scaleX(-1);':''}${extra}"></div>`:'';
 const stars=(()=>{let s='';for(let i=0;i<70;i++){const x=R()*1080,y=R()*1920,r=R()*2+.6;s+=`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(1)}" fill="#fff" opacity="${(R()*.6+.3).toFixed(2)}"/>`;}
@@ -27,7 +29,8 @@ const stars=(()=>{let s='';for(let i=0;i<70;i++){const x=R()*1080,y=R()*1920,r=R
 const CSS=`*{margin:0;padding:0;box-sizing:border-box}body{width:1080px;height:1920px;overflow:hidden;position:relative;font-family:'Noto Serif CJK JP',serif;background:${T.a}}
 .gold{background:linear-gradient(180deg,#fff6d6 0%,#f7d77e 38%,#d9a441 62%,#fbe7a2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(60,20,80,.85)) drop-shadow(0 0 14px rgba(0,0,0,.45))}
 body.lm .gold{background:linear-gradient(180deg,#d9a441 0%,#b07a2a 45%,#7a4a1a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 3px 0 rgba(255,255,255,.95)) drop-shadow(0 0 12px rgba(255,250,240,.9))}
-.emo{font-family:'Noto Color Emoji';line-height:1}`;
+.emo{font-family:'Noto Color Emoji';line-height:1}
+.safe .foot{background:none!important;border-top:none!important}`;
 function portrait(){const sz=290;const inner=faceFile?`<div style="position:absolute;inset:0;background:url(${uri(FACE,faceFile)}) center top/cover no-repeat"></div>`:bgDiv(dark.find(f=>f.includes('moon'))||bgDark,false,'background-size:cover;background-position:50% 30%');
  return `<div style="position:absolute;top:64px;right:36px;width:${sz}px;height:${sz}px;border-radius:50%;overflow:hidden;border:6px solid #e9c46a;box-shadow:0 0 0 4px rgba(255,255,255,.35),0 0 40px rgba(255,214,120,.55)">${inner}</div>`;}
 function header(){const t=D.title.split('\n');const last=t.pop();const nl=(D.num||'').length;const fs=Math.min(D.titleSize||94,Math.floor(680/Math.max(...t.map(x=>x.length),last.length+nl*1.2)));const ns=Math.round(fs*2);
@@ -65,12 +68,12 @@ function grid(){const top=640,bottom=270;const n=D.cards.length,cols=4,rowsN=Mat
   <div style="margin-top:auto;align-self:stretch;text-align:center"><div style="display:inline-block;background:${T.c};color:#fff;font-size:18px;font-weight:700;padding:2px 14px;border-radius:999px;margin-bottom:-6px;position:relative;${LM?'opacity:.75;':''}">${esc(D.tipLabel||'ひとこと')}</div>
    <div style="background:rgba(255,247,230,${LM?.5:.75});border:${LM?'1.5px solid rgba(201,154,74,.5)':'2px solid #e9c46a'};border-radius:12px;padding:12px 6px 8px;color:#3a2350;font-size:21px;font-weight:700;line-height:1.35">${br(c.tip)}</div></div></div>`).join('');
  return `<div style="position:absolute;top:${top}px;left:24px;right:24px;display:grid;grid-template-columns:repeat(${cols},1fr);gap:12px">${cards}</div>`;}
-function footer(){if(LM)return `<div style="position:absolute;left:0;right:0;bottom:0;height:262px;background:linear-gradient(180deg,rgba(255,251,244,0),rgba(255,248,240,.82) 22%,rgba(255,244,236,.9));border-top:3px solid rgba(176,130,58,.5)">
+function footer(){if(LM)return `<div class="foot" style="position:absolute;left:0;right:0;bottom:0;height:262px;background:linear-gradient(180deg,rgba(255,251,244,0),rgba(255,248,240,.82) 22%,rgba(255,244,236,.9));border-top:3px solid rgba(176,130,58,.5)">
  <div style="text-align:center;color:#6a4a2e;font-size:30px;font-weight:700;margin-top:18px;letter-spacing:.06em">${esc(D.footSmall)}</div>
  <div class="gold" style="text-align:center;font-size:${Math.min(66,Math.floor(940/[...D.footBig].length))}px;font-weight:900;line-height:1.15;margin-top:0">${esc(D.footBig)}</div>
  <div style="display:flex;justify-content:center;gap:22px;margin-top:10px">${(D.btns||['保存して見返してね']).filter(b=>!/毎日12時/.test(b)).map(b=>`<div style="border:3px solid #c99a4a;color:#5a3d22;background:rgba(255,255,255,.55);font-size:26px;font-weight:700;padding:8px 28px;border-radius:999px">${esc(b)}</div>`).join('')}</div>
  <div style="text-align:center;color:#8a6532;font-size:22px;letter-spacing:.3em;margin-top:8px">未來（みく）の霊視鑑定</div></div>`;
- return `<div style="position:absolute;left:0;right:0;bottom:0;height:262px;background:linear-gradient(180deg,rgba(0,0,0,0),${T.a} 22%,${T.b});border-top:3px solid rgba(233,196,106,.65)">
+ return `<div class="foot" style="position:absolute;left:0;right:0;bottom:0;height:262px;background:linear-gradient(180deg,rgba(0,0,0,0),${T.a} 22%,${T.b});border-top:3px solid rgba(233,196,106,.65)">
  <div style="text-align:center;color:#f6e7c1;font-size:30px;font-weight:700;margin-top:18px;letter-spacing:.06em">${esc(D.footSmall)}</div>
  <div class="gold" style="text-align:center;font-size:${Math.min(66,Math.floor(940/[...D.footBig].length))}px;font-weight:900;line-height:1.15;margin-top:0">${esc(D.footBig)}</div>
  <div style="display:flex;justify-content:center;gap:22px;margin-top:10px">${(D.btns||['保存して見返してね']).filter(b=>!/毎日12時/.test(b)).map(b=>`<div style="border:3px solid #e9c46a;color:#fff6dc;background:rgba(255,255,255,.08);font-size:26px;font-weight:700;padding:8px 28px;border-radius:999px">${esc(b)}</div>`).join('')}</div>
@@ -79,7 +82,7 @@ function tablePage(){return `<!doctype html><html><head><meta charset="utf-8"><s
  ${LM?`${bgDiv(bgLight,!flip)}<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,251,244,.35) 0%,rgba(255,251,244,.2) 35%,rgba(255,251,244,.3) 100%)"></div>
  <div style="position:absolute;inset:12px;border:3px solid rgba(176,130,58,.55);border-radius:28px"></div>`:`${bgDiv(bgDark,flip)}<div style="position:absolute;inset:0;background:linear-gradient(180deg,${T.a}cc 0%,${T.b}b3 35%,${T.a}d9 100%)"></div>${stars}
  <div style="position:absolute;inset:12px;border:3px solid rgba(233,196,106,.55);border-radius:28px"></div>`}
- ${header()}${D.layout==='grid'?grid():rows()}${footer()}</body></html>`;}
+ <div class="safe" style="position:absolute;top:0;left:0;width:1080px;height:1920px;transform-origin:50% 0;transform:translateY(${SAFE_TOP}px) scale(${SAFE_SCALE})">${header()}${D.layout==='grid'?grid():rows()}${footer()}</div></body></html>`;}
 function ctaPage(){return `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
  ${bgDiv(bgLight,!flip)}<div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 45% at 50% 50%,rgba(255,251,244,.9),rgba(255,251,244,.55) 65%,rgba(255,251,244,.15))"></div>
  <div style="position:absolute;inset:40px;border:2px solid #b0823a;opacity:.6;border-radius:8px"></div>
