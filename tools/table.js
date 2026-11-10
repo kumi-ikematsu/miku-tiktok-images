@@ -12,9 +12,9 @@ const dark=files.filter(f=>f.startsWith('dark-')),light=files.filter(f=>f.starts
 const uri=(dir,f)=>{const ext=path.extname(f).slice(1).toLowerCase();return `data:image/${ext==='jpg'?'jpeg':ext};base64,`+fs.readFileSync(path.join(dir,f)).toString('base64');};
 const faceFiles=fs.existsSync(FACE)?fs.readdirSync(FACE).filter(f=>/\.(png|jpe?g|webp)$/i.test(f)).sort():[];
 const THEMES=[
- {n:'紫',a:'#2a0f4a',b:'#4b1f7a',c:'#7a3fb0',pill:'linear-gradient(90deg,#3b1466,#6a2fa0,#3b1466)',row:'#fbf7ff',rowR:'#f3ecfb'},
- {n:'藍',a:'#0f1440',b:'#26307a',c:'#4f5fc0',pill:'linear-gradient(90deg,#17205c,#3a4aa8,#17205c)',row:'#f8f9ff',rowR:'#eceffb'},
- {n:'葡萄',a:'#33102e',b:'#5e1f55',c:'#9a4590',pill:'linear-gradient(90deg,#4a1442,#86357c,#4a1442)',row:'#fff7fb',rowR:'#f8eaf3'}];
+ {n:'紫',a:'#2a0f4a',b:'#4b1f7a',c:'#7a3fb0',pill:'linear-gradient(90deg,#3b1466,#6a2fa0,#3b1466)',row:'rgba(251,247,255,.82)',rowR:'rgba(243,236,251,.74)'},
+ {n:'藍',a:'#0f1440',b:'#26307a',c:'#4f5fc0',pill:'linear-gradient(90deg,#17205c,#3a4aa8,#17205c)',row:'rgba(248,249,255,.82)',rowR:'rgba(236,239,251,.74)'},
+ {n:'葡萄',a:'#33102e',b:'#5e1f55',c:'#9a4590',pill:'linear-gradient(90deg,#4a1442,#86357c,#4a1442)',row:'rgba(255,247,251,.82)',rowR:'rgba(248,234,243,.74)'}];
 const dayNo=seedArg&&/^\d{4}-\d{2}-\d{2}/.test(seedArg)?Math.floor(Date.parse(seedArg.slice(0,10))/864e5):null;
 const faceFile=faceFiles.length?(dayNo!==null?faceFiles[Math.floor(dayNo/2)%faceFiles.length]:pick(faceFiles)):null; // 一覧表回(2日おき)ごとに順番に入れ替わる
 const T=pick(THEMES),bgDark=dark.length?pick(dark):null,bgLight=light.length?pick(light):null,flip=R()<.5;
@@ -27,7 +27,7 @@ const stars=(()=>{let s='';for(let i=0;i<70;i++){const x=R()*1080,y=R()*1920,r=R
  for(let i=0;i<9;i++){const x=R()*1080,y=R()*1920,k=.6+R()*1.2;s+=`<path d="M${x} ${y-16*k}L${x+4*k} ${y-4*k}L${x+16*k} ${y}L${x+4*k} ${y+4*k}L${x} ${y+16*k}L${x-4*k} ${y+4*k}L${x-16*k} ${y}L${x-4*k} ${y-4*k}Z" fill="#ffe7a6" opacity=".9"/>`;}
  return `<svg style="position:absolute;inset:0" width="1080" height="1920" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;})();
 const CSS=`*{margin:0;padding:0;box-sizing:border-box}body{width:1080px;height:1920px;overflow:hidden;position:relative;font-family:'Noto Serif CJK JP',serif;background:${T.a}}
-.gold{background:linear-gradient(180deg,#fff6d6 0%,#f7d77e 38%,#d9a441 62%,#fbe7a2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(60,20,80,.85)) drop-shadow(0 0 14px rgba(0,0,0,.45))}
+.gold{background:linear-gradient(180deg,#fff6d6 0%,#f7d77e 38%,#d9a441 62%,#fbe7a2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 rgba(60,20,80,.5)) drop-shadow(0 0 12px rgba(0,0,0,.25))}
 body.lm .gold{background:linear-gradient(180deg,#d9a441 0%,#b07a2a 45%,#7a4a1a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 3px 0 rgba(255,255,255,.95)) drop-shadow(0 0 12px rgba(255,250,240,.9))}
 .emo{font-family:'Noto Color Emoji';line-height:1}
 .safe .foot{background:none!important;border-top:none!important}`;
@@ -47,13 +47,13 @@ function header(){const t=D.title.split('\n');const last=t.pop();const nl=(D.num
 function rows(){const top=600,bottom=270,n=D.rows.length,h=1920-top-bottom-78;const rh=Math.min(96,Math.floor(h/n))-8;
  const head=`<div style="position:absolute;top:${top}px;left:28px;right:28px;display:flex;gap:44px">${[D.colL,D.colR].map(c=>`<div style="flex:1;background:${T.pill};color:#fff;font-size:30px;font-weight:700;text-align:center;padding:12px 0;border-radius:999px 999px 18px 18px;border:2px solid rgba(233,196,106,.7)">${esc(c)}</div>`).join('')}</div>`;
  const body=D.rows.map((r,i)=>`<div style="display:flex;align-items:center;height:${rh}px;margin-bottom:8px">
-  <div style="flex:1;height:100%;display:flex;align-items:center;gap:12px;background:${T.row};border-radius:16px;padding:0 12px;box-shadow:0 3px 10px rgba(0,0,0,.25)">
+  <div style="flex:1;height:100%;display:flex;align-items:center;gap:12px;background:${T.row};border-radius:16px;padding:0 12px;box-shadow:0 2px 8px rgba(0,0,0,.12)">
    <div style="flex:none;width:30px;height:30px;border:3px solid ${T.c};border-radius:6px;background:#fff"></div>
    <div style="flex:none;width:${Math.min(56,rh-14)}px;height:${Math.min(56,rh-14)}px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6,transparent 45%),${BADGE[i%BADGE.length]};color:#fff;font-size:${rh>70?32:26}px;font-weight:900;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${i+1}</div>
-   <div style="flex:1;color:#2b1840;font-size:${D.rowSize||27}px;font-weight:700;line-height:1.25">${br(r.l)}</div>
+   <div style="flex:1;color:#4a3560;font-size:${D.rowSize||27}px;font-weight:700;line-height:1.25">${br(r.l)}</div>
    <div class="emo" style="flex:none;font-size:${Math.min(46,rh-24)}px">${esc(r.li||'')}</div></div>
   <div style="flex:none;width:44px;text-align:center;color:#e9c46a;font-size:34px;text-shadow:0 0 8px rgba(0,0,0,.5)">➜</div>
-  <div style="flex:1;height:100%;display:flex;align-items:center;gap:10px;background:${T.rowR};border-radius:16px;padding:0 16px;box-shadow:0 3px 10px rgba(0,0,0,.25)">
+  <div style="flex:1;height:100%;display:flex;align-items:center;gap:10px;background:${T.rowR};border-radius:16px;padding:0 16px;box-shadow:0 2px 8px rgba(0,0,0,.12)">
    ${D.checkR?`<div style="flex:none;width:30px;height:30px;border:3px solid ${T.c};border-radius:6px;background:#fff"></div>`:''}
    <div style="flex:1;color:${T.b};font-size:${D.rowSize||27}px;font-weight:700;line-height:1.25">${br(r.r)}</div>
    <div class="emo" style="flex:none;font-size:${Math.min(46,rh-24)}px">${esc(r.ri||'')}</div></div></div>`).join('');
@@ -80,7 +80,7 @@ function footer(){if(LM)return `<div class="foot" style="position:absolute;left:
  <div style="text-align:center;color:#e9c46a;font-size:22px;letter-spacing:.3em;margin-top:8px">未來（みく）の霊視鑑定</div></div>`;}
 function tablePage(){return `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body${LM?' class="lm"':''}>
  ${LM?`${bgDiv(bgLight,!flip)}<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,251,244,.35) 0%,rgba(255,251,244,.2) 35%,rgba(255,251,244,.3) 100%)"></div>
- <div style="position:absolute;inset:12px;border:3px solid rgba(176,130,58,.55);border-radius:28px"></div>`:`${bgDiv(bgDark,flip)}<div style="position:absolute;inset:0;background:linear-gradient(180deg,${T.a}cc 0%,${T.b}b3 35%,${T.a}d9 100%)"></div>${stars}
+ <div style="position:absolute;inset:12px;border:3px solid rgba(176,130,58,.55);border-radius:28px"></div>`:`${bgDiv(bgDark,flip)}<div style="position:absolute;inset:0;background:linear-gradient(180deg,${T.a}a6 0%,${T.b}8c 35%,${T.a}b3 100%)"></div>${stars}
  <div style="position:absolute;inset:12px;border:3px solid rgba(233,196,106,.55);border-radius:28px"></div>`}
  <div class="safe" style="position:absolute;top:0;left:0;width:1080px;height:1920px;transform-origin:50% 0;transform:translateY(${SAFE_TOP}px) scale(${SAFE_SCALE})">${header()}${D.layout==='grid'?grid():rows()}${footer()}</div></body></html>`;}
 function ctaPage(){return `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
